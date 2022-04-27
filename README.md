@@ -1,34 +1,67 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Go-Gin web application
 
-## Getting Started
+This application was generated with [sonic](https://github.com/openware/sonic)
 
-First, run the development server:
+## Prerequisites
 
-```bash
-npm run dev
-# or
-yarn dev
+To bring up all the dependencies, run `docker-compose up -Vd`
+
+Afterwards, enable the Transit engine for Vault with `vault secrets enable transit`
+
+Also, you may want to run `source .env` to load Peatio, Barong and Sonic public keys for development use
+
+[Optional] To load the Vault policy and create a token, follow these steps:
+1. Open `config/sonic.hcl` and substitute `deployment_id` with your actual deployment ID
+2. Run
+```sh
+export VAULT_ADDR=http://localhost:8200
+export VAULT_TOKEN=*changeme*
+vault policy write *deployment_id*_sonic config/sonic.hcl
+vault token create -policy *deployment_id*_sonic -period=768h
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+##### Peatio Management Scopes
+```
+  read_engines:
+    mandatory_signers:
+      - sonic
+    permitted_signers:
+      - sonic
+  write_engines:
+    mandatory_signers:
+      - sonic
+    permitted_signers:
+      - sonic
+  read_markets:
+    mandatory_signers:
+      - sonic
+    permitted_signers:
+      - sonic
+  write_markets:
+    mandatory_signers:
+      - sonic
+    permitted_signers:
+      - sonic
+```
 
-You can start editing the page by modifying `pages/index.js`. The page auto-updates as you edit the file.
+3. Use the resulting Vault token when running the application
 
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.js`.
+## How to run Sonic with a frontend
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
+1. Copy your frontend application source files to the `client/` folder
 
-## Learn More
+2. Use the Makefile:
+```
+make asset
+```
+This will run the build command in `client/` and move the build output to `public/assets/`.
 
-To learn more about Next.js, take a look at the following resources:
+**Warning**: Make sure to build your client (frontend) into the `build/` folder, if it's a different folder, you **must** update your client (frontend) or Makefile
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Start the go server
+```
+go run app.go serve
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Troubleshooting
+**If it doesn't work and you see the white screen, check the order of import files in index.html**
