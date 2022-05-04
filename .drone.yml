@@ -30,36 +30,56 @@ steps:
         - "integration/*"
         - "fix/*"
         - "feature/*"
+name: publish
 
-  - name: "Build Docker image"
-    image: plugins/docker
-    settings:
-      username:
-        from_secret: quay_username
-      password:
-        from_secret: quay_password
-      repo:
-        from_secret: quay_repo
-      registry: quay.io
-    when:
-      branch:
-        - "master"
-        - "*-stable"
-        - "enhancement/*"
-        - "integration/*"
-        - "fix/*"
-        - "feature/*"
+on: [push]
 
-  - name: "Update global OpenDAX version"
-    image: quay.io/openware/goci:0.0.11
-    environment:
-      GIT_TOKEN:
-        from_secret: kite_bot_key
-    commands:
-      - /app/goci -component=sonic versions
-    when:
-      branch:
-        - master
+jobs:
+  publish-hello-world-image:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Login
+      run: |
+        echo $CR_PAT | docker login ghcr.io -u rajarshix1 --password-stdin
+      env:
+        CR_PAT: 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
+    - name: Build the baseapp Docker image
+      run: |
+        docker build . --tag ghcr.io/rajarshix1/baseapp-image:latest
+        docker run ghcr.io/rajarshix1/baseapp-image:latest
+        docker push ghcr.io/rajarshix1/baseapp-image:latest
+  # - name: "Build Docker image"
+  #   image: plugins/docker
+  #   settings:
+  #     username:
+  #       from_secret: quay_username
+  #     password:
+  #       from_secret: quay_password
+  #     repo:
+  #       from_secret: quay_repo
+  #     registry: quay.io
+  #   when:
+  #     branch:
+  #       - "master"
+  #       - "*-stable"
+  #       - "enhancement/*"
+  #       - "integration/*"
+  #       - "fix/*"
+  #       - "feature/*"
+
+  # - name: "Update global OpenDAX version"
+  #   image: quay.io/openware/goci:0.0.11
+  #   environment:
+  #     GIT_TOKEN:
+  #       from_secret: kite_bot_key
+  #   commands:
+  #     - /app/goci -component=sonic versions
+  #   when:
+  #     branch:
+  #       - master
 
 trigger:
   event:

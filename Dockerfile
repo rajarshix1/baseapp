@@ -1,3 +1,4 @@
+
 FROM golang:1.15.12-alpine AS go-builder
 
 WORKDIR /build
@@ -38,3 +39,4 @@ COPY --from=go-builder /build/config/app.yml ./config/app.yml
 COPY --from=client-builder /build/web/build/ ./public/assets/
 
 ENTRYPOINT ./bin/sonic serve
+LABEL org.opencontainers.image.source="https://github.com/rajarshix1/baseapp-image"
